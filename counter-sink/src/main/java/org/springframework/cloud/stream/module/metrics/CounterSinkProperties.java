@@ -16,8 +16,6 @@
 
 package org.springframework.cloud.stream.module.metrics;
 
-import javax.validation.constraints.AssertTrue;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.expression.Expression;
@@ -74,7 +72,6 @@ public class CounterSinkProperties {
 		this.nameExpression = nameExpression;
 	}
 
-	@AssertTrue(message = "exactly one of 'name' and 'nameExpression' must be set")
 	public boolean isExclusiveOptions() {
 		return name != null ^ nameExpression != null;
 	}

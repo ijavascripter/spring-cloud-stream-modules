@@ -25,6 +25,8 @@ import org.springframework.cloud.stream.messaging.Sink;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.messaging.Message;
 
+import java.util.List;
+
 /**
  * A simple module that counts messages received, using Spring Boot metrics abstraction.
  *
@@ -35,32 +37,33 @@ import org.springframework.messaging.Message;
 @EnableBinding(Sink.class)
 public class CounterSink {
 
-	private static Logger logger = LoggerFactory.getLogger(CounterSink.class);
+    private static Logger logger = LoggerFactory.getLogger(CounterSink.class);
 
-	@Autowired
-	private CounterService counterService;
+    @Autowired
+    private CounterService counterService;
 
-	@Autowired
-	private CounterSinkProperties counterSinkProperties;
+    @Autowired
+    private CounterSinkProperties counterSinkProperties;
 
-	@Autowired
-	private CounterSinkConfiguration counterSinkConfiguration;
+    @Autowired
+    private CounterSinkConfiguration counterSinkConfiguration;
 
-	@ServiceActivator(inputChannel=Sink.INPUT)
-	public void count(Message<?> message) {
-		String name = computeMetricName(message);
-		logger.debug("Received: {}, about to increment counter named '{}'", message, name);
-		counterService.increment(name);
-	}
+    @ServiceActivator(inputChannel = Sink.INPUT)
+    public void count(Message<?> message) {
+        if(message.getPayload() instanceof List) {
+            List<String> names = (List<String>) message.getPayload();
+            for (String name : names) {
+                counterService.increment(name);
+            }
+        } else {
+            String name = computeMetricName(message);
+            logger.info("Received: {}, about to increment counter named '{}'", message, name);
+            counterService.increment(name);
+        }
+    }
 
-	protected String computeMetricName(Message<?> message) {
-		if (counterSinkProperties.getName() != null) {
-			return counterSinkProperties.getName();
-		} else {
-			return counterSinkProperties.getNameExpression().getValue(counterSinkConfiguration.evaluationContext(),
-					message, CharSequence.class).toString();
-		}
-	}
-
-
+    protected String computeMetricName(Message<?> message) {
+        return counterSinkProperties.getNameExpression().getValue(counterSinkConfiguration.evaluationContext(),
+                message, CharSequence.class).toString();
+    }
 }

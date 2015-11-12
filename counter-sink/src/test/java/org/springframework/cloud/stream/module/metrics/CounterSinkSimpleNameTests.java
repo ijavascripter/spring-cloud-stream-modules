@@ -15,14 +15,10 @@
  */
 package org.springframework.cloud.stream.module.metrics;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.metrics.repository.MetricRepository;
 import org.springframework.boot.test.SpringApplicationConfiguration;
@@ -33,6 +29,9 @@ import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * @author Mark Pollack
@@ -55,23 +54,24 @@ public class CounterSinkSimpleNameTests {
 
     @Before
     public void init() {
-        redisMetricRepository.reset("counter.simpleCounter");
+        redisMetricRepository.reset("counter.Hi");
     }
 
     @After
     public void clear() {
-        redisMetricRepository.reset("counter.simpleCounter");
+        redisMetricRepository.reset("counter.Hi");
     }
 
     @Test
     public void testIncrement() throws InterruptedException {
         assertNotNull(this.sink.input());
+        this.redisMetricRepository.reset("counter.Hi");
         Message<String> message = MessageBuilder.withPayload("Hi").build();
         sink.input().send(message);
         Thread.sleep(5500);
         //Note:  If the name of the counter does not start with 'counter' or 'metric' the 'counter.' prefix is added
         //       by the DefaultCounterService
-        assertEquals(1, this.redisMetricRepository.findOne("counter.simpleCounter").getValue().longValue());
+        assertEquals(1, this.redisMetricRepository.findOne("counter.Hi").getValue().longValue());
     }
 
 }
